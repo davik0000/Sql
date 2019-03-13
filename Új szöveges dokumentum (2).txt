@@ -1,0 +1,94 @@
+select to_char(szuletesi_datum, 'yyyy'), count(*)   
+    from KONYVTAR.tag
+    group by to_char(szuletesi_datum,'yyyy')            
+    having count(*) >= 3;
+    
+select extract (year from szuletesi_datum), count(*)   
+    from KONYVTAR.tag
+    group by extract(year from szuletesi_datum)            
+    having count(*) >= 3;                                       --  extract(year from ....) /day /minute /second ...
+    
+    
+select substr(cim,1,4),count(*) db
+    from KONYVTAR.tag
+    group by substr(cim,1,4)
+        order by db desc; 
+        
+        
+select substr(cim,6,instr(cim, ',') -6 ),count(*) db
+    from KONYVTAR.tag
+    group by substr(cim,6,instr(cim, ',') -6 )
+        order by db desc;                                           -- substr megadott karakterek keresése a pozicijat adja vissza int-ként
+        
+        
+-- mikor szuletett a legidosebb olvaso
+    
+select to_char(min(szuletesi_datum),'ds') from KONYVTAR.tag;
+
+
+-- legoregebb olvaso neve
+
+select vezeteknev, keresztnev
+    from KONYVTAR.tag
+    where szuletesi_datum =
+    (select min(szuletesi_datum)
+        from KONYVTAR.tag);                     -- beagyazott select 
+        
+        
+-- azon konyvtartagok nevei akiknek ugyanaz a keresztnve mint barmelyik diak besorolasu tagnak
+
+select vezeteknev, keresztnev, besorolas 
+    from KONYVTAR.tag
+    where keresztnev in
+    (select keresztnev 
+        from KONYVTAR.tag
+        where besorolas='diák');
+    
+    
+
+ --milyen leltári számon és milyen értékben léteznek könyvek cim ,téma   
+    
+    
+select count(*) from KONYVTAR.konyv, KONYVTAR.konyvtari_konyv;
+select count(*) from KONYVTAR.konyvtari_konyv;
+select count(*) from KONYVTAR.konyv;
+
+select kk.leltari_szam, ertek, k.cim, k.tema
+    from KONYVTAR.konyv k, KONYVTAR.konyvtari_konyv kk 
+    where k.konyv_azon = kk.konyv_azon;                             --alias név kk ,k
+                  
+
+select kk.leltari_szam, ertek, k.cim, k.tema
+    from KONYVTAR.konyv k join KONYVTAR.konyvtari_konyv kk 
+    on k.konyv_azon = kk.konyv_azon;                                -- ua mint a felso csak joinnal
+
+
+select kk.leltari_szam, ertek, k.cim, k.tema
+    from KONYVTAR.konyv k join KONYVTAR.konyvtari_konyv kk 
+    on k.konyv_azon = kk.konyv_azon
+    where tema = 'krimi';                                
+
+
+select kk.leltari_szam, ertek, k.cim, k.tema
+    from KONYVTAR.konyv k join KONYVTAR.konyvtari_konyv kk 
+    using(konyv_azon)
+    where tema = 'krimi'; 
+    
+    
+
+select *
+    from KONYVTAR.konyv k natural join KONYVTAR.konyvtari_konyv kk 
+
+    where tema = 'krimi';                                           -- magátol joinol ,megkeresi eggyezo attributumokat
+    
+    
+    
+--frei tamas mennyi honorariumot kapott konyveiként
+
+
+select konyv_azon, honorarium
+    from KONYVTAR.szerzo ksz natural join KONYVTAR.konyvszerzo kk 
+    where vezeteknev || keresztnev = 'FreiTamás'; 
+
+                                              -- magátol joinol ,megkeresi eggyezo attributumokat
+    
