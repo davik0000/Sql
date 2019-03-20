@@ -1,0 +1,101 @@
+-- vak ond milyen témáju könyveket kölcsönzött ki temankent group, abs rend temak rendezes
+
+select DISTINCT tema 
+    from KONYVTAR.tag join KONYVTAR.kolcsonzes
+        on olvasojegyszam = tag_azon
+        join KONYVTAR.konyvtari_konyv using (leltari_szam)
+        join KONYVTAR.konyv using (konyv_azon)
+    where vezeteknev || keresztnev = 'VakOnd'
+    order by tema;
+        
+            
+-- azon könyvek adatai amelyekbol egyettlen peldany sincs a konyvtarunkban
+
+
+select * from KONYVTAR.konyv
+    where konyv_azon not in
+        (select konyv_azon
+            from KONYVTAR.konyvtari_konyv);
+            
+            
+select *
+    from KONYVTAR.konyv k
+        where not exists
+            (select *
+                from KONYVTAR.konyvtari_konyv kk
+                where k.konyv_azon = kk.konyv_azon);
+                
+                
+select * 
+from KONYVTAR.konyv k join KONYVTAR.konyvtari_konyv kk
+    using(konyv_azon);                                                      -- sima join a lógó sorokat kiszuri , helyett kulso osszekapcsolas
+    
+    
+    
+select * 
+from KONYVTAR.konyv k right join KONYVTAR.konyvtari_konyv kk
+    using(konyv_azon);                                                  -- kulso 3 felekeepp bal oldali , jobb oldali , teljes
+                                                                        --                   left          right        full   
+                                                                        -- csak a logo sorokat hagyjuk meg bal, jobb , vagy mindekettobol meghagyjuk a logo sorokat
+                                                                        -- ugyanaz mint a belso csak több eredményt adhat
+                                                                        -- ha mindent ki kell iratni outer joint használjunk !!!!!!
+                                                                        
+-- szerzok nevei és azon könyvek azonositoi amiket irtak , azokat a szerzoket is akik nem irtak senkit
+
+select vezeteknev, keresztnev, konyv_azon
+    from KONYVTAR.szerzo st left join KONYVTAR.konyvszerzo
+        using (szerzo_azon);
+        
+        
+       -- osszes nyugdijas olvasok neve azon könyvek leltari szamat melyeket ok kolcsonoztek ki
+       
+select vezeteknev, keresztnev, leltari_szam, besorolas 
+    from KONYVTAR.tag left join KONYVTAR.kolcsonzes
+    on olvasojegyszam = tag_azon
+    where besorolas = 'nyugdíjas';
+    
+    
+    -- összess szerzok konv cimek amiket irtak
+    
+select vezeteknev, keresztnev, konyv_azon, cim 
+    from KONYVTAR.szerzo st left join KONYVTAR.konyvszerzo   
+        using (szerzo_azon)
+    left join KONYVTAR.konyv using(konyv_azon);    
+    
+    
+    -- osszes 1000 Ft-nál tobb erteku konyvtari konyvek ki kolcsonzott ki azokat is amiket nem kolcsonoztek ki
+    
+    
+select leltari_szam, vezeteknev, keresztnev
+    from KONYVTAR.konyvtari_konyv k left join KONYVTAR.kolcsonzes
+        using (leltari_szam)
+    left join KONYVTAR.tag on olvasojegyszam = tag_azon
+    where ertek > 1000;
+    
+
+select vezeteknev, keresztnev , count(kolcsonzesi_datum) db
+    from KONYVTAR.tag  left join KONYVTAR.kolcsonzes 
+        on olvasojegyszam = tag_azon
+    group by olvasojegyszam, vezeteknev, keresztnev
+    order by db desc, 1, 2;
+        
+    
+    
+-- scifi temaju konyvek atlagos erteke
+
+select avg(ertek) 
+from KONYVTAR.konyv  join KONYVTAR.konyvtari_konyv 
+    using (konyv_azon)
+    where tema = 'sci-fi';
+
+
+ select sum(ertek)/count(*) 
+from KONYVTAR.konyv  join KONYVTAR.konyvtari_konyv 
+    using (konyv_azon)
+    where tema = 'sci-fi';   
+
+
+ select avg(nvl(ertek,0)) 
+from KONYVTAR.konyv  join KONYVTAR.konyvtari_konyv 
+    using (konyv_azon)
+    where tema = 'sci-fi';                              -- nvl()  minek szamolja a nullokat !!!
