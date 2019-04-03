@@ -1,0 +1,134 @@
+
+select cim, count(ko.leltari_szam)
+    from KONYVTAR.konyv kk  left join KONYVTAR.konyvtari_konyv ko
+    on kk.konyv_azon = ko.konyv_azon
+    
+    group by cim, kk.konyv_azon
+    having count(ko.leltari_szam)<3;
+    
+    
+    
+    
+select extract(year from szuletesi_datum) ev, 'szerzo'
+    from KONYVTAR.szerzo 
+    union
+select extract(year from kiadas_datuma) ev, 'konyv'
+    from KONYVTAR.konyv
+    union 
+select extract(year from visszahozasi_datum) ev, 'kolcsonzes'
+    from KONYVTAR.kolcsonzes
+    union 
+select extract(year from szuletesi_datum) ev, 'tag'
+    from KONYVTAR.tag
+    union
+select extract(year from beiratkozasi_datum) ev, 'tag'
+    from KONYVTAR.tag 
+order by ev;
+
+select vezeteknev, keresztnev, count(leltari_szam)
+    from KONYVTAR.tag kt left join KONYVTAR.kolcsonzes kk
+     on kt.olvasojegyszam = kk.tag_azon
+     group by vezeteknev, keresztnev
+     having count(leltari_szam) = 0;
+     
+select * 
+    from KONYVTAR.tag 
+        where olvasojegyszam not in (select tag_azon from KONYVTAR.kolcsonzes);
+        
+select *
+    from KONYVTAR.tag left outer join KONYVTAR.kolcsonzes ko
+        on tag.olvasojegyszam = ko.tag_azon
+        where ko.tag_azon is null;
+        
+select * from KONYVTAR.tag
+where olvasojegyszam in(select olvasojegyszam 
+    from KONYVTAR.tag
+        minus select  tag_azon 
+        from KONYVTAR.kolcsonzes);
+        
+        
+select * 
+    from KONYVTAR.tag 
+    where not exists (select 1 
+                        from KONYVTAR.kolcsonzes ko
+                        where tag.olvasojegyszam = ko.tag_azon);
+                        
+--5 legdragabb konyv --    
+    
+select rownum , ar, cim
+    from(select ar, cim
+        from KONYVTAR.konyv
+        order by ar desc nulls last)
+        where rownum < 6;
+        
+--azok a tagok akik a 10 utolso klcsonzok
+select tag.vezeteknev, tag.keresztnev
+from ( select *
+    from KONYVTAR.kolcsonzes
+    order by  kolcsonzesi_datum desc) b
+    inner join KONYVTAR.tag tag
+    on tag.olvasojegyszam = b.tag_azon
+    where rownum < 11;
+    
+    
+select vezeteknev, keresztnev, cim, honorarium
+    from KONYVTAR.konyv kk join KONYVTAR.konyvszerzo ko
+        on kk.konyv_azon = ko.konyv_azon    
+    join KONYVTAR.szerzo ksz on ksz.szerzo_azon = ko.szerzo_azon
+    order by honorarium desc nulls last;
+    
+    
+select *
+    from dict; --dictionary
+    
+    
+select * from user_tables;
+
+
+create table zoldseg
+(azon number(5),
+nev varchar2(30),
+constraint z_pk primary key (azon));
+
+
+select *
+    from user_tab_cols;
+    
+select *
+    from user_constraints;
+  
+select * 
+    from all_tables;
+
+
+select * 
+    from all_constraints;
+     
+insert into zoldseg(azon, nev)
+values (1,'répa');
+insert into zoldseg(azon, nev)
+values (2,'paradicsom');
+commit;
+
+select * from zoldseg;
+
+grant select on zoldseg to u_ckj1f1;
+grant select on zoldseg to u_p8hr70;
+
+select * from u_p8hr70.zoldseg;
+
+insert into zoldseg(azon, nev)
+values (3,'saláta');
+commit;
+grant insert on zoldseg  to u_neptunkod
+revoke select on zoldseg from u_neptunkod
+       insert     
+
+
+
+     
+
+    
+    
+    
+  
