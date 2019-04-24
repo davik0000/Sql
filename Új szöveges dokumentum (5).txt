@@ -1,0 +1,138 @@
+--Data Definition Language (DDL) Adatokat leiro adatok manioulálása (Metaadatok) kezelése   ((create, alter, drop, create view))--
+
+--create table <táblanév> 
+--(
+    --[<oszlopleirás> | <táblamegszoritás>],...
+--)
+
+--<oszlopleirás>,
+--<oszlopnév> <tipus> [<oszlopmegszoritás>]...
+
+
+--create table TULAJ
+--(
+   --  [azon] 5 karakter int, elsodleges kulcs 
+   -- [név]30-as string, nem lehet null
+   -- szuldat datum tip
+   -- szemelyiszam 11karakter string, nem lehet null, ez is kulcs
+--)
+
+--tipusok: number, number(p) - p  jegyet tartalmaz, number(p,r)  r db tizedesvesszo utan
+--         char(n) - n karakterbol allo string, varchar2(n) - változó hosszuságu string max n karakter
+--         date -- dátum és ido
+
+create table tulaj
+(
+    azon number(5) primary key,
+    nev varchar2(30) not null,
+    szul_dat date,
+    szemelyiszam char(11) not null unique
+);
+
+
+drop table tulaj;   --table torlese
+
+--megszoritas "tabla megszoritas" , elnevezzuk oket - constraint
+
+create table tulaj
+(
+    azon number(5) ,
+    nev varchar2(30)constraint tulaj_nn_nev not null,
+    szul_dat date,
+    szemelyiszam char(11) constraint tulaj_nn_szsz not null,
+    constraint tulaj_pk primary key (azon),
+    constraint tulaj_un_szsz unique (szemelyiszam)
+);
+
+drop table tulaj;
+
+-- default ertek 
+
+create table tulaj
+(
+    azon number(5) ,
+    nev varchar2(30)constraint tulaj_nn_nev not null,
+    szul_dat date default sysdate,
+    szemelyiszam char(11) constraint tulaj_nn_szsz not null,
+    constraint tulaj_pk primary key (azon),
+    constraint tulaj_un_szsz unique (szemelyiszam)
+);
+
+
+-- auto nevu tabla  rendszam8 kar string, szin 10 kar string, tulaj azon 5 jegy szam, ar max 8 tizedesjegy 2 tortresz
+-- elsodleges kulcs rendzsam,kulos kulcs tulajazon azonra hivatkozik, ar nem lehet 10000-nel kissebb
+
+create table auto
+( 
+    rendszam varchar2(6) constraint auto_pk primary key,
+    szin varchar(10),
+    tulaj_azon number(5) constraint auto_fk_tulaj references tulaj(azon),
+    ar number(8,2) constraint auto_ck_ar check (ar >= 10000)
+    
+);
+
+
+drop table auto;
+
+--not null, default nem lehet táblamegszoritásba átvenni minden mást igen
+
+create table auto
+( 
+    rendszam varchar2(6) ,
+    szin varchar(10),
+    tulaj_azon number(5),
+    ar number(8,2) ,
+    constraint auto_pk primary key (rendszam),
+    constraint auto_fk_tulaj foreign key (tulaj_azon) references tulaj,
+    constraint auto_ck_ar check (ar >= 10000)
+);
+
+
+
+-- olyan select olvasok vezeteknev keresztnev mennyit kolcsonoztek, azokat is listazzuk akiknek 0
+create table kolcson as
+select  vezeteknev, keresztnev, count (tag_azon) kolcsonzesek
+    from KONYVTAR.tag left join KONYVTAR.kolcsonzes
+        on olvasojegyszam = tag_azon
+    group by olvasojegyszam, vezeteknev, keresztnev;
+    
+    
+    
+    
+-- alter table <táblanév> add, modify, rename to 
+--drop constraint <név>
+-- drop primary key
+    
+alter table kolcson
+    add primary key (vezeteknev, keresztnev, kolcsonzesek);
+    
+alter table kolcson
+    add tag_azon number ;
+    
+alter table kolcson
+    drop primary key;
+    
+alter table kolcsonzes
+    add constraint kolcson_pk                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      primary key (tag_azon);
+    
+create sequence szekv;
+    update kolcson set tag_azon = szekv.nextval;
+
+
+
+alter table auto
+     add tipus varchar2(20);
+     
+     
+     
+alter table auto
+    rename column tipus to model;
+    
+alter table auto
+    drop constraint auto_ck_ar;
+
+
+
+alter table auto
+    modify (rendszam varchar2(10),
+            szin varchar 2(5));
