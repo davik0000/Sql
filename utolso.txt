@@ -1,0 +1,114 @@
+alter table xxxx
+    drop column mezo;
+    
+    
+    DML Data Manipulation Language
+    
+    select .... - adatok lekérdezése
+    insert  - uj sorok beszurasa
+    delete  - sor törlése
+    update  - adat frissitése
+    
+    
+    insert into <táblanév>
+        [(<oszlop>,...)]
+        values(<kifejezés>,...);   -egy sort szur be
+        
+        
+    insert into <táblanév>
+    [(<oszlop>,...)]
+    select ...;             -minden vagy nulla sort szur be 
+    
+    
+    insert into tulaj
+        values(2, 'Toth Géza', to_date('1999.12.31', 'yyyy.mm.dd'),'19912311234');
+        
+        
+    insert into tulaj (nev, azon)
+        values('Kovacs Anna', 10);
+        
+    insert into tulaj (azon, nev)
+        values(10, '');
+        
+    insert into tulaj (azon, nev)
+        values(10, null);
+        
+        -szurjuk be a tulaj tablaba a konyv tablaban talalhato adatok nagyjat
+        
+    insert into tulaj
+        select mod(konyv_azon, power(10, 5)),
+            substr(cim,1,50),
+            kiadas_datuma,
+            substr(isbn, 3)
+            from KONYVTAR.konyv
+            where tema like 's%';
+            
+            
+delete from <tablanev>
+    [where <feltetel>]
+        
+delete from tulaj
+    where mod(azon, 2) = 1;
+    
+    
+update <tablanev>
+    set <oszlopnév> = <kifejezés>[,...]
+    [where <feltétel>];
+    
+update tulaj
+    set szemelyiszam = '12345678921'
+    where azon = 10;
+    
+    
+update tulaj
+    set nev = upper(nev),
+    szul_dat = szul_dat + 1
+    where extract(day from szul_dat) = 1;
+    
+    
+update kolcson
+    set kolcsonzesek = null;
+    
+update kolcson
+    set kolcsonzesek =
+        (select count(tag_azon) kolcsonzesek
+        from KONYVTAR.tag t left join KONYVTAR.kolcsonzes on olvasojegyszam = tag_azon
+            where t.vezeteknev = kolcson.keresztnev
+            and t.keresztnev = kolcson.keresztnev);
+
+
+
+DCL    Data Control Language
+
+tranzakciokezelés:
+
+Commit  - véglegesités
+Rollback  -visszacsinál mindent commitig
+Set autocommit on;  - minden dml után auto commit
+Save point <mentesipont>
+
+jogosultság kezelés:
+
+Grant
+Revoke
+
+
+grant [<jog>,...|All[privileges]]
+    [on <objektum>]
+    to[<felhasználónév,....|PUBLIC>]
+    [With grant option];                - ha grant option jogosultságot tovább adhatják a jogot
+            
+            
+
+objektumjog
+select
+insert
+delete
+update
+references
+
+grant select on kolcson tu u_;
+grant select, insert, update on kolcson tu u_;
+
+revok update on kolcson from u_;
+grant all on kolcson to u_;
